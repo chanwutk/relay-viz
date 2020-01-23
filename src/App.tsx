@@ -1,26 +1,36 @@
 import React from 'react';
-import logo from './logo.svg';
+import UploadButton from './components/UploadButton';
 import './App.css';
+import RelayPicker from './components/RelayPicker';
 
-const App: React.FC = () => {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+interface AppStates {
+  graphData: any[]; // TODO: make type for graph
+}
+
+class App extends React.Component<{}, AppStates> {
+  constructor(props: {}) {
+    super(props);
+    this.state = { graphData: [] };
+  }
+
+  onUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const content = String(reader.result);
+      this.setState({ graphData: JSON.parse(content) });
+    };
+    reader.readAsText(file);
+  };
+
+  render() {
+    return (
+      <div className="App">
+        <h1>Relay Visualizer</h1>
+        <UploadButton onUpload={this.onUpload} />
+        <RelayPicker graphData={[2, 34, 4]} />
+      </div>
+    );
+  }
 }
 
 export default App;
