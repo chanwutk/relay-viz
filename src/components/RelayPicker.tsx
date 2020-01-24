@@ -1,6 +1,7 @@
 import React from 'react';
 import { Fab } from '@material-ui/core';
 import { ArrowLeft, ArrowRight } from '@material-ui/icons';
+import RelayViz from './RelayViz';
 
 const pickerStyle: React.CSSProperties = {
   display: 'flex',
@@ -45,6 +46,7 @@ class RelayPicker extends React.Component<RelayPickerProps, RelayPickerState> {
           <ArrowLeft />
         </Fab>
         <div>{this.state.idx}</div>
+        <RelayViz graphData={this.props.graphData[this.state.idx]} />
         <Fab
           disabled={this.state.idx >= this.props.graphData.length - 1}
           onClick={this.updateIdxFactory(1)}
