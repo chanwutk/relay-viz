@@ -5,29 +5,35 @@ export const vizEnter = (className: string, graphData: any[]) => {
     width = 600 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
 
+  const nodesData: RelayNode[] = [
+    { id: 0, text: 'x: Tensor[(21), float32]', level: 0, x: 0 },
+    { id: 1, text: 'y: Tensor[(958, 21), float32]', level: 0, x: 1 },
+    { id: 2, text: 'Call(op=multiply)', level: 1, x: 0.5 },
+    { id: 3, text: 'Call(op=sum)', level: 2, x: 0.5 },
+    { id: 4, text: 'Fuction', level: 3, x: 0.5 },
+  ];
+  const edgesData: RelayEdge[] = [
+    { parent: 0, child: 2 },
+    { parent: 1, child: 2 },
+    { parent: 2, child: 3 },
+    { parent: 3, child: 4 },
+  ];
+
+  const nodesMap: any = {};
+  nodesData.forEach(node => (nodesMap[node.id] = node));
+
   var x = d3
-    .scaleBand()
-    .rangeRound([0, width])
-    .padding(0.1);
+    .scaleLinear()
+    .domain([0, 1])
+    .range([0, width]);
 
   var y0 = d3
     .scaleLinear()
-    .domain([300, 1100])
-    .range([height, 0]),
-    y1 = d3
-      .scaleLinear()
-      .domain([20, 80])
-      .range([height, 0]);
-
-  var xAxis = d3.axisBottom(x);
-
-  // create left yAxis
-  var yAxisLeft = d3.axisLeft(y0).ticks(4);
-  // create right yAxis
-  var yAxisRight = d3.axisRight(y1).ticks(6);
+    .domain([0, 3])
+    .range([height, 0]);
 
   var svg = d3
-    .select('.viz')
+    .select(`.${className}`)
     .append('svg')
     .attr('width', width + margin.left + margin.right)
     .attr('height', height + margin.top + margin.bottom)
@@ -35,91 +41,87 @@ export const vizEnter = (className: string, graphData: any[]) => {
     .attr('class', 'graph')
     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-  const data = [
-    { year: 2005, money: 550, number: 35 },
-    { year: 2006, money: 600, number: 40 },
-    { year: 2007, money: 700, number: 45 },
-    { year: 2008, money: 800, number: 60 },
-    { year: 2009, money: 900, number: 70 },
-    { year: 2010, money: 850, number: 65 },
-    { year: 2011, money: 880, number: 67 },
-    { year: 2012, money: 900, number: 70 },
-    { year: 2013, money: 1000, number: 75 },
-  ];
-  x.domain(
-    data.map(function (d: { year: number }) {
-      return d.year + '';
-    })
-  );
+  x.domain([
+    0,
+    d3.max(nodesData, function(d: RelayNode) {
+      return d.x;
+    })!,
+  ]);
   y0.domain([
     0,
-    d3.max(data, function (d: { money: number }) {
-      return d.money;
+    d3.max(nodesData, function(d: RelayNode) {
+      return d.level;
     })!,
   ]);
 
-  svg
-    .append('g')
-    .attr('class', 'x axis')
-    .attr('transform', 'translate(0,' + height + ')')
-    .call(xAxis);
-
-  svg
-    .append('g')
-    .attr('class', 'y axis axisLeft')
-    .attr('transform', 'translate(0,0)')
-    .call(yAxisLeft)
-    .append('text')
-    .attr('y', 6)
-    .attr('dy', '-2em')
-    .style('text-anchor', 'end')
-    .style('text-anchor', 'end')
-    .text('Dollars');
-
-  svg
-    .append('g')
-    .attr('class', 'y axis axisRight')
-    .attr('transform', 'translate(' + width + ',0)')
-    .call(yAxisRight)
-    .append('text')
-    .attr('y', 6)
-    .attr('dy', '-2em')
-    .attr('dx', '2em')
-    .style('text-anchor', 'end')
-    .text('#');
-
-  const bars = svg
-    .selectAll('.bar')
-    .data(data)
+  const edges = svg
+    .selectAll('.edge')
+    .data(edgesData)
     .enter();
 
-  bars
-    .append('rect')
-    .attr('class', 'bar1')
-    .attr('x', function (d) {
-      return x(d.year + '')!;
+  edges
+    .append('line')
+    .attr('x1', function(d) {
+      return x(nodesMap[d.parent].x!)!;
     })
-    .attr('width', x.bandwidth() / 2)
-    .attr('y', function (d) {
-      return y0(d.money);
+    .attr('x2', function(d) {
+      return x(nodesMap[d.child].x!)!;
     })
-    .attr('height', function (d, i, j) {
-      return height - y0(d.money);
+    .attr('y1', function(d) {
+      return y0(nodesMap[d.parent].level!)!;
+    })
+    .attr('y2', function(d) {
+      return y0(nodesMap[d.child].level!)!;
+    })
+    .attr('stroke-width', 2)
+    .attr('stroke', 'black');
+
+  const nodes = svg
+    .selectAll('.node')
+    .data(nodesData)
+    .enter();
+
+  nodes
+    .append('circle')
+    .attr('class', 'node')
+    .attr('cx', function(d) {
+      return x(d.x!)!;
+    })
+    .attr('cy', function(d) {
+      return y0(d.level);
+    })
+    .attr('r', 30)
+    .style('fill', 'lightgrey');
+
+  const labels = svg
+    .selectAll('.label')
+    .data(nodesData)
+    .enter();
+
+  labels
+    .append('text')
+    .attr('class', 'label')
+    .attr('x', function(d) {
+      return x(d.x!)!;
+    })
+    .attr('y', function(d) {
+      return y0(d.level);
+    })
+    .attr('font-family', 'sans-serif')
+    .attr('font-size', '14px')
+    .attr('fill', 'black')
+    .attr('text-anchor', 'middle')
+    .attr('dominant-baseline', 'middle')
+    .text(function(d) {
+      return d.text;
     });
 
-  bars
-    .append('rect')
-    .attr('class', 'bar2')
-    .attr('x', function (d) {
-      return x(d.year + '')! + x.bandwidth() / 2;
-    })
-    .attr('width', x.bandwidth() / 2)
-    .attr('y', function (d) {
-      return y1(d.number);
-    })
-    .attr('height', function (d, i, j) {
-      return height - y1(d.number);
-    });
+  const edge = svg
+    .selectAll('.edge')
+    .data(edgesData)
+    .enter();
+
+  edge.append('line');
 };
 
-export const vizUpdate = (className: string, graphData: any[]) => { };
+export const vizUpdate = (className: string, graphData: any[]) => {};

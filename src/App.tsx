@@ -25,7 +25,7 @@ class App extends React.Component<{}, AppStates> {
   render() {
     return (
       <div className="App">
-        <h1>Relay Visualizer</h1>
+        <h1>Relay IR Visualizer</h1>
         <UploadButton onUpload={this.onUpload} />
         <RelayPicker graphData={[2, 34, 4]} />
       </div>

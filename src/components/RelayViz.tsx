@@ -6,8 +6,8 @@ interface RelayVizProps {
 }
 
 class RelayViz extends React.Component<RelayVizProps> {
-  componentDidMount = () => vizEnter("viz", this.props.graphData);
-  componentDidUpdate = () => vizUpdate("viz", this.props.graphData);
+  componentDidMount = () => vizEnter('viz', this.props.graphData);
+  componentDidUpdate = () => vizUpdate('viz', this.props.graphData);
   render = () => <div className="viz" />;
 }
 
